@@ -22,6 +22,10 @@ class StringLiteral(ASTNode):
     def __init__(self, value):
         self.value = value
 
+class BlankSpaceLiteral(ASTNode):
+    def __init__(self):
+        self.value = None
+
 class BooleanLiteral(ASTNode):
     def __init__(self, value):
         self.value = value
@@ -108,6 +112,31 @@ class MessageInABottle(ASTNode):
     def __init__(self):
         pass
 
+class DearJohnStatement(ASTNode):
+    def __init__(self, data, filepath):
+        self.data = data
+        self.filepath = filepath
+
+class AllTooWellExpression(ASTNode):
+    def __init__(self, filepath):
+        self.filepath = filepath
+
+class CallItWhatYouWantStatement(ASTNode):
+    def __init__(self, name, filepath):
+        self.name = name
+        self.filepath = filepath
+
+class ChooseYourPlayerStatement(ASTNode):
+    def __init__(self, variable, cases, default_case):
+        self.variable = variable
+        self.cases = cases # List of (value, branch) tuples
+        self.default_case = default_case
+
+class CaseBlock(ASTNode):
+    def __init__(self, value, body):
+        self.value = value
+        self.body = body
+
 class VaultDeclaration(ASTNode):
     def __init__(self, elements):
         self.elements = elements
@@ -181,8 +210,12 @@ class Parser:
             else:
                 # If not an assignment, it must be an access, but it's an expression, not a statement
                 raise Exception(f"'unlock' used as a statement must be an assignment. For access, use it within an expression.")
-        elif token_type == 'IDENTIFIER' and self.peek_token()[0] == 'LPAREN': # Function call
-            return self.parse_function_call()
+        elif token_type == 'KEYWORD' and token_value == 'DearJohn':
+            return self.parse_dear_john_statement()
+        elif token_type == 'KEYWORD' and token_value == 'CallItWhatYouWant':
+            return self.parse_call_it_what_you_want_statement()
+        elif token_type == 'KEYWORD' and token_value == 'ChooseYourPlayer':
+            return self.parse_choose_your_player_statement()
         else:
             raise Exception(f"Unexpected token: {token_type} {token_value}")
 
@@ -226,8 +259,9 @@ class Parser:
                 return self.parse_squad_access()
             elif self.peek_token()[0] == 'KEYWORD' and self.peek_token()[1] == 'in': # Vault access
                 return self.parse_vault_access()
-            self.advance()
-            return Identifier(token_value)
+            else:
+                self.advance()
+                return Identifier(token_value)
         elif token_type == 'KEYWORD' and token_value == 'MessageInABottle':
             self.advance()
             return MessageInABottle()
@@ -241,6 +275,13 @@ class Parser:
             self.consume('KEYWORD', 'in')
             vault_name = self.consume('IDENTIFIER')[1]
             return VaultAccess(vault_name, key)
+        elif token_type == 'KEYWORD' and token_value == 'BlankSpace':
+            self.advance()
+            return BlankSpaceLiteral()
+        elif token_type == 'KEYWORD' and token_value == 'AllTooWell':
+            self.advance()
+            filepath = self.parse_expression()
+            return AllTooWellExpression(filepath)
         else:
             raise Exception(f"Unexpected token in expression: {token_type} {token_value}")
 
@@ -315,7 +356,7 @@ class Parser:
 
     def parse_block(self):
         statements = []
-        while not (self.current_token()[0] == 'KEYWORD' and self.current_token()[1] in ['TheEnd', 'OrMaybe', 'EvenSo']):
+        while not (self.current_token()[0] == 'KEYWORD' and self.current_token()[1] in ['TheEnd', 'OrMaybe', 'EvenSo', 'TheArcher', 'Daylight']):
             statements.append(self.parse_statement())
         return statements
 
@@ -434,3 +475,42 @@ class Parser:
         self.consume('ASSIGN', 'is')
         value = self.parse_expression()
         return VaultAssignment(vault_name, key, value)
+
+    def parse_dear_john_statement(self):
+        self.consume('KEYWORD', 'DearJohn')
+        data = self.parse_expression()
+        self.consume('KEYWORD', 'to')
+        filepath = self.parse_expression()
+        return DearJohnStatement(data, filepath)
+
+    def parse_all_too_well_expression(self):
+        self.consume('KEYWORD', 'AllTooWell')
+        filepath = self.parse_expression()
+        return AllTooWellExpression(filepath)
+
+    def parse_call_it_what_you_want_statement(self):
+        self.consume('KEYWORD', 'CallItWhatYouWant')
+        name = self.consume('IDENTIFIER')[1]
+        self.consume('KEYWORD', 'from')
+        filepath = self.parse_expression()
+        return CallItWhatYouWantStatement(name, filepath)
+
+    def parse_choose_your_player_statement(self):
+        self.consume('KEYWORD', 'ChooseYourPlayer')
+        variable = self.parse_expression()
+        cases = []
+        while self.current_token()[0] == 'KEYWORD' and self.current_token()[1] == 'TheArcher':
+            self.consume('KEYWORD', 'TheArcher')
+            value = self.parse_expression()
+            self.consume('COLON')
+            body = self.parse_block()
+            cases.append((value, body))
+        
+        default_case = None
+        if self.current_token()[0] == 'KEYWORD' and self.current_token()[1] == 'Daylight':
+            self.consume('KEYWORD', 'Daylight')
+            self.consume('COLON')
+            default_case = self.parse_block()
+
+        self.consume('KEYWORD', 'TheEnd')
+        return ChooseYourPlayerStatement(variable, cases, default_case)

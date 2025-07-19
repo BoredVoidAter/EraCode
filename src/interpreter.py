@@ -1,9 +1,13 @@
-from parser import VarDeclaration, SpeakNowStatement, NumberLiteral, StringLiteral, BinaryExpression, Identifier, IfStatement, WhileStatement, SquadDeclaration, SquadAccess, FunctionDeclaration, FunctionCall, ReturnStatement, TheErasTourLoop, JoinTheSquad, CastOut, RollCall, MessageInABottle, VaultDeclaration, VaultAccess, VaultAssignment
+import os
+from parser import VarDeclaration, SpeakNowStatement, NumberLiteral, StringLiteral, BinaryExpression, Identifier, IfStatement, WhileStatement, SquadDeclaration, SquadAccess, FunctionDeclaration, FunctionCall, ReturnStatement, TheErasTourLoop, JoinTheSquad, CastOut, RollCall, MessageInABottle, VaultDeclaration, VaultAccess, VaultAssignment, DearJohnStatement, AllTooWellExpression, BlankSpaceLiteral, CallItWhatYouWantStatement, ChooseYourPlayerStatement
+from module_loader import ModuleLoader
 
 class Interpreter:
-    def __init__(self):
+    def __init__(self, module_loader=None, current_file=None):
         self.variables = {}
         self.functions = {}
+        self.module_loader = module_loader if module_loader else ModuleLoader()
+        self.current_file = current_file
 
     def interpret(self, ast):
         for statement in ast.statements:
@@ -38,6 +42,12 @@ class Interpreter:
             self.execute_vault_declaration(statement)
         elif isinstance(statement, VaultAssignment):
             self.execute_vault_assignment(statement)
+        elif isinstance(statement, DearJohnStatement):
+            self.execute_dear_john_statement(statement)
+        elif isinstance(statement, CallItWhatYouWantStatement):
+            self.execute_call_it_what_you_want_statement(statement)
+        elif isinstance(statement, ChooseYourPlayerStatement):
+            self.execute_choose_your_player_statement(statement)
         else:
             raise Exception(f"Unknown statement type: {type(statement)}")
 
@@ -95,6 +105,10 @@ class Interpreter:
             vault = self.variables[expression.vault_name]
             key = self.evaluate_expression(expression.key)
             return vault[key]
+        elif isinstance(expression, BlankSpaceLiteral):
+            return None
+        elif isinstance(expression, AllTooWellExpression):
+            return self.execute_all_too_well_expression(expression)
         else:
             raise Exception(f"Unknown expression type: {type(expression)}")
 
@@ -201,3 +215,43 @@ class Interpreter:
         key = self.evaluate_expression(statement.key)
         value = self.evaluate_expression(statement.value)
         vault[key] = value
+
+    def execute_dear_john_statement(self, statement):
+        data = self.evaluate_expression(statement.data)
+        filepath = self.evaluate_expression(statement.filepath)
+        with open(filepath, 'w') as f:
+            f.write(str(data))
+
+    def execute_all_too_well_expression(self, expression):
+        filepath = self.evaluate_expression(expression.filepath)
+        with open(filepath, 'r') as f:
+            content = f.read()
+        return content
+
+    def execute_call_it_what_you_want_statement(self, statement):
+        module_filepath = self.evaluate_expression(statement.filepath)
+        # Get the directory of the current file being interpreted
+        current_file_dir = os.path.dirname(os.path.abspath(self.current_file))
+        module_variables, module_functions = self.module_loader.load_module(module_filepath, self, current_file_dir)
+        
+        # Import the specified function or variable
+        if statement.name in module_functions:
+            self.functions[statement.name] = module_functions[statement.name]
+        elif statement.name in module_variables:
+            self.variables[statement.name] = module_variables[statement.name]
+        else:
+            raise Exception(f"'TheManor' does not contain {statement.name}")
+
+    def execute_choose_your_player_statement(self, statement):
+        variable_value = self.evaluate_expression(statement.variable)
+        executed_case = False
+        for case_value_expr, case_body in statement.cases:
+            case_value = self.evaluate_expression(case_value_expr)
+            if variable_value == case_value:
+                for s in case_body:
+                    self.execute_statement(s)
+                executed_case = True
+                break
+        if not executed_case and statement.default_case:
+            for s in statement.default_case:
+                self.execute_statement(s)

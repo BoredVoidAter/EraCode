@@ -11,7 +11,7 @@ class Lexer:
         token_specs = [
             ('SKIP', r'\s+'),  # Whitespace
             ('COMMENT', r'DearReader.*'),  # Single-line comments
-            ('KEYWORD', r'TheStoryOfUs|SpeakNow|ShouldveSaidNo|OrMaybe|EvenSo|ThisIsMeTrying|fearless|guilty|getElementFrom|at|BeginAgain|TheEnd|SparksFly|TheErasTour|in|JoinTheSquad|CastOut|RollCall|MessageInABottle|TheVault|unlock'),  # Keywords
+            ('KEYWORD', r'TheStoryOfUs|SpeakNow|ShouldveSaidNo|OrMaybe|EvenSo|ThisIsMeTrying|fearless|guilty|getElementFrom|at|BeginAgain|TheEnd|SparksFly|TheErasTour|in|JoinTheSquad|CastOut|RollCall|MessageInABottle|TheVault|unlock|BlankSpace|DearJohn|to|AllTooWell|TheManor|CallItWhatYouWant|from|ChooseYourPlayer|TheArcher|Daylight'),  # Keywords
             ('ASSIGN', r'is'),  # Assignment operator
             ('COMPARE_OPERATOR', r'isnt|is|moreThan|lessThan'), # Comparison operators
             ('LOGICAL_OPERATOR', r'and|or'), # Logical operators

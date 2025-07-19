@@ -11,13 +11,18 @@ class Lexer:
         token_specs = [
             ('SKIP', r'\s+'),  # Whitespace
             ('COMMENT', r'DearReader.*'),  # Single-line comments
-            ('KEYWORD', r'TheStoryOfUs|SpeakNow|ShouldveSaidNo|OrMaybe|EvenSo|ThisIsMeTrying|fearless|guilty|getElementFrom|at'),  # Keywords
+            ('KEYWORD', r'TheStoryOfUs|SpeakNow|ShouldveSaidNo|OrMaybe|EvenSo|ThisIsMeTrying|fearless|guilty|getElementFrom|at|BeginAgain|TheEnd|SparksFly|TheErasTour|in|JoinTheSquad|CastOut|RollCall|MessageInABottle|TheVault|unlock'),  # Keywords
             ('ASSIGN', r'is'),  # Assignment operator
             ('COMPARE_OPERATOR', r'isnt|is|moreThan|lessThan'), # Comparison operators
             ('LOGICAL_OPERATOR', r'and|or'), # Logical operators
+            ('LPAREN', r'\('), # Left parenthesis
+            ('RPAREN', r'\)'), # Right parenthesis
             ('LBRACKET', r'\['), # Left bracket for Squad
             ('RBRACKET', r'\]'), # Right bracket for Squad
+            ('LBRACE', r'\{'), # Left brace for Vault
+            ('RBRACE', r'\}'), # Right brace for Vault
             ('COMMA', r','), # Comma for Squad elements
+            ('COLON', r':'), # Colon for Vault key-value pairs
             ('IDENTIFIER', r'[a-zA-Z_][a-zA-Z0-9_]*'),  # Identifiers
             ('STRING', r'"[^"]*"'),  # String literals
             ('NUMBER', r'\d+'),  # Integer literals

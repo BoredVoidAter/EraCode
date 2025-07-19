@@ -11,12 +11,17 @@ class Lexer:
         token_specs = [
             ('SKIP', r'\s+'),  # Whitespace
             ('COMMENT', r'DearReader.*'),  # Single-line comments
-            ('KEYWORD', r'TheStoryOfUs|SpeakNow'),  # Keywords
+            ('KEYWORD', r'TheStoryOfUs|SpeakNow|ShouldveSaidNo|OrMaybe|EvenSo|ThisIsMeTrying|fearless|guilty|getElementFrom|at'),  # Keywords
             ('ASSIGN', r'is'),  # Assignment operator
+            ('COMPARE_OPERATOR', r'isnt|is|moreThan|lessThan'), # Comparison operators
+            ('LOGICAL_OPERATOR', r'and|or'), # Logical operators
+            ('LBRACKET', r'\['), # Left bracket for Squad
+            ('RBRACKET', r'\]'), # Right bracket for Squad
+            ('COMMA', r','), # Comma for Squad elements
             ('IDENTIFIER', r'[a-zA-Z_][a-zA-Z0-9_]*'),  # Identifiers
             ('STRING', r'"[^"]*"'),  # String literals
             ('NUMBER', r'\d+'),  # Integer literals
-            ('OPERATOR', r'[+\-*/]'),  # Operators
+            ('ARITHMETIC_OPERATOR', r'[+\-*/]'),  # Arithmetic Operators
         ]
 
         token_regex = '|'.join('(?P<%s>%s)' % pair for pair in token_specs)
